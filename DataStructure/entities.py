@@ -78,16 +78,64 @@ class Effects:
             effect.tick()
 
 
+class Action:
+    _actions: dict[int, Action]
+    _current_id = 0
+
+    def __init__(self, name: str):
+        self.name = name
+        self.id = self._current_id
+        self._current_id += 1
+
+        self._actions[self.id] = self
+
+    def __eq__(self, other):
+        return other is self or self.id == other or self.name == other
+
+    @classmethod
+    def get_from_id(cls, action_id: int):
+        return cls._actions[action_id] if action_id in cls._actions else None
+
+    @classmethod
+    def get(cls, name: str):
+        for el in cls._actions:
+            if cls._actions[el].name == name:
+                return cls._actions[el]
+        return None
+
+
+NoAction = Action("NoAction")
+
+
+class Info:
+    def __init__(self):
+        self.damage: int = 0
+
+        self.object: Entity | None = None
+
+    @property
+    def health(self):
+        return self.object.stats["max_health"]
+
+    @health.setter
+    def health(self, value):
+        self.damage = self.health - value
+
+    def connect(self, entity: Entity):
+        self.object = entity
+
+
 class Status:
-    def __init__(self, info):
+    def __init__(self, info: Info):
         self.effects: Effects = Effects()
-        self.action = None
+        self.action: Action = NoAction
         self.info = info
         self.object: Entity | None = None
 
     def connect(self, entity: Entity):
         self.object = entity
         self.effects.connect(entity)
+        self.info.connect(entity)
 
 
 class EntityStats(Stats):
