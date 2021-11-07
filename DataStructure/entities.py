@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 
+from .Tools import lock
+
+
 class Position:
     def __init__(self, x: int, y: int):
         self.x = x
@@ -113,16 +116,19 @@ class Info:
 
         self.object: Entity | None = None
 
+    @lock
+    def connect(self, entity: Entity):
+        self.object = entity
+
     @property
+    @connect.locked
     def health(self):
         return self.object.stats["max_health"]
 
     @health.setter
+    @connect.locked
     def health(self, value):
         self.damage = self.health - value
-
-    def connect(self, entity: Entity):
-        self.object = entity
 
 
 class Status:
@@ -132,6 +138,7 @@ class Status:
         self.info = info
         self.object: Entity | None = None
 
+    @lock
     def connect(self, entity: Entity):
         self.object = entity
         self.effects.connect(entity)

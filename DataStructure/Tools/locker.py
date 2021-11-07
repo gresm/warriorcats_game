@@ -112,3 +112,9 @@ def lock(*args, **kwargs):
 
 def _lock(func: Callable, allow_multiple_unlocking: bool):
     return _Locker(func, allow_multiple_unlocking)
+
+
+__all__ = [
+    "lock",
+    "LockingError"
+]
