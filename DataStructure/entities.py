@@ -4,10 +4,56 @@ from __future__ import annotations
 from .Tools import lock
 
 
-class Position:
-    def __init__(self, x: int, y: int):
-        self.x = x
-        self.y = y
+class Position(tuple):
+    x: float
+    y: float
+    
+    def __new__(cls, x: float, y: float) -> Position:
+        return super().__new__(cls, (x, y))
+
+    def __getattr__(self, item):
+        if item == "x":
+            return self[0]
+        elif item == "y":
+            return self[1]
+        raise AttributeError
+    
+    def __add__(self, other: Position | float) -> Position:
+        if isinstance(other, Position):
+            return self.new(self.x + other.x, self.y + other.y)
+        return self.new(self.x + other, self.y + other)
+    
+    def __sub__(self, other: Position | float) -> Position:
+        if isinstance(other, Position):
+            return self.new(self.x - other.x, self.y - other.y)
+        return self.new(self.x - other, self.y - other)
+
+    def __truediv__(self, other: Position | float) -> Position:
+        if isinstance(other, Position):
+            return self.new(self.x / other.x, self.y / other.y)
+        return self.new(self.x / other, self.y / other)
+    
+    def __floordiv__(self, other: Position | float) -> Position:
+        if isinstance(other, Position):
+            return self.new(self.x // other.x, self.y // other.y)
+        return self.new(self.x // other, self.y // other)
+    
+    def __mul__(self, other: Position | float):
+        """
+        Not valid mathematical implementation... 
+        :param other: 
+        :return: 
+        """
+        if isinstance(other, Position):
+            return self.new(self.x * other.x, self.y * other.y)
+        return self.new(self.x * other, self.y * other)
+    
+    @classmethod
+    def new(cls, x: float, y: float) -> Position:
+        return cls.__new__(cls, x, y)
+
+    def dot(self, other: Position) -> float:
+        return self.x * other.x + self.y * other.y
 
 
 class Stats:
