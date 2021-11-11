@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .entities import Position
+from .Tools import Position
 
 
 class Area:
