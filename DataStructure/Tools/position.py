@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import overload, Sequence
+from typing import overload, Sequence, Iterable
 
 
 class Position(list):
@@ -19,20 +19,13 @@ class Position(list):
     def __init__(self, pos: "Position"):
         ...
 
+    @overload
+    def __init__(self, iterable: Iterable[float]):
+        ...
+
     def __init__(self, *args, **kwargs):
         x = None
         y = None
-
-        if "pos" in kwargs:
-            x, y = kwargs["pos"].xy
-        elif "xy" in kwargs:
-            x, y = kwargs["xy"]
-
-        if "x" in kwargs:
-            x = kwargs["x"]
-
-        if "y" in kwargs:
-            y = kwargs["y"]
 
         if len(args) == 2:
             x, y = args
@@ -53,17 +46,46 @@ class Position(list):
                     raise TypeError(f"expected (float, float) got {tuple(tps)}")
             elif isinstance(args[0], Position):
                 x, y = args[0].xy
+            elif hasattr(args[0], "__iter__") or hasattr(args[0], "__list__"):
+                lst = list(args[0])
+                if len(lst) != 2:
+                    raise TypeError("iterable yielded incorrect amount of data")
+
+                for el in lst:
+                    if not isinstance(el, (float, int)):
+                        raise TypeError(f"iterable yielded {el}, expected float")
+            else:
+                raise TypeError(f"incorrect data, got {args[0]}")
         else:
             raise TypeError(f"expected at most 2 argument, got {len(args)}")
+
+        if "pos" in kwargs:
+            x, y = kwargs["pos"].xy
+        elif "xy" in kwargs:
+            x, y = kwargs["xy"]
+        elif "iterable" in kwargs:
+            lst = list(kwargs["iterable"])
+            if len(lst) != 2:
+                raise TypeError("iterable yielded incorrect amount of data")
+
+            for el in lst:
+                if not isinstance(el, (float, int)):
+                    raise TypeError(f"iterable yielded {el}, expected float")
+
+        if "x" in kwargs:
+            x = kwargs["x"]
+
+        if "y" in kwargs:
+            y = kwargs["y"]
 
         if x is None or y is None:
             raise TypeError("x or y are not specified")
 
         if not isinstance(x, (int, float)):
-            raise TypeError(f"expected float, got {type(x)}")
+            raise TypeError(f"expected float, got {x}")
 
         if not isinstance(y, (int, float)):
-            raise TypeError(f"expected float, got {type(y)}")
+            raise TypeError(f"expected float, got {y}")
 
         super().__init__((x, y))
 
