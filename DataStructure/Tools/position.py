@@ -119,6 +119,12 @@ class Position(list):
             return self.new(self.x * other.x, self.y * other.y)
         return self.new(self.x * other, self.y * other)
 
+    def __hash__(self):
+        return hash(id(self))
+
+    def __eq__(self, other):
+        return self is other or (isinstance(other, Position) and self.x == other.x and self.y == other.y)
+
     @classmethod
     def new(cls, x: float, y: float) -> Position:
         return cls(x, y)

@@ -67,3 +67,9 @@ class Shape:
                     return False
             return True
         return False
+
+
+__all__ = [
+    "Rect",
+    "Shape"
+]
