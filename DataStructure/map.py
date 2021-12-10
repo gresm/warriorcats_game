@@ -1,21 +1,28 @@
 from __future__ import annotations
 
+import numpy as np
+
 from .Tools import Position, Shape
 
 
 class GridMap:
+    size = (20, 20)
+    data_type = np.dtype([("tile_type", np.int_), ("texture", np.int_)])
+    default = 0
+
     def __init__(self):
-        pass
+        self.map = np.full(self.size, self.default, dtype=self.data_type)
 
 
-class MapTile:
-    def __init__(self, triggers: dict[str, Shape]):
+class MapChunk:
+    def __init__(self, triggers: dict[str, Shape], grid: GridMap):
         self.triggers = triggers
+        self.grid = grid
 
 
 class Map:
-    def __init__(self, tile: MapTile, extra_tiles: dict[Position, MapTile] | None = None):
-        self.tiles: dict[Position, MapTile] = {Position(0, 0): tile}
+    def __init__(self, tile: MapChunk, extra_tiles: dict[Position, MapChunk] | None = None):
+        self.tiles: dict[Position, MapChunk] = {Position(0, 0): tile}
         extra_tiles = extra_tiles if extra_tiles else {}
         extra_copy = extra_tiles.copy()
         extra_copy.update(self.tiles)
