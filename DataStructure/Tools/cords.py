@@ -167,5 +167,12 @@ class Cords(list):
     def move(self, x: float = 0, y: float = 0):
         return self.__class__(self.x + x, self.y + y)
 
+    def goto(self, x: float, y: float):
+        self.x = x
+        self.y = y
+
     def copy(self):
         return self.move()
+
+    def cord(self):
+        return int(self.x), int(self.y)
