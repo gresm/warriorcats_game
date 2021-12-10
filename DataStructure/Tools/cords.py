@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import overload, Sequence, Iterable
 
 
-class Position(list):
+class Cords(list):
     x: float
     y: float
 
@@ -16,7 +16,7 @@ class Position(list):
         ...
 
     @overload
-    def __init__(self, pos: "Position"):
+    def __init__(self, pos: "Cords"):
         ...
 
     @overload
@@ -44,7 +44,7 @@ class Position(list):
                     for el in args[0]:
                         tps.append(type(el))
                     raise TypeError(f"expected (float, float) got {tuple(tps)}")
-            elif isinstance(args[0], Position):
+            elif isinstance(args[0], Cords):
                 x, y = args[0].xy
             elif hasattr(args[0], "__iter__") or hasattr(args[0], "__list__"):
                 lst = list(args[0])
@@ -89,33 +89,33 @@ class Position(list):
 
         super().__init__((x, y))
 
-    def __add__(self, other: Position | float) -> Position:
-        if isinstance(other, Position):
+    def __add__(self, other: Cords | float) -> Cords:
+        if isinstance(other, Cords):
             return self.new(self.x + other.x, self.y + other.y)
         return self.new(self.x + other, self.y + other)
 
-    def __sub__(self, other: Position | float) -> Position:
-        if isinstance(other, Position):
+    def __sub__(self, other: Cords | float) -> Cords:
+        if isinstance(other, Cords):
             return self.new(self.x - other.x, self.y - other.y)
         return self.new(self.x - other, self.y - other)
 
-    def __truediv__(self, other: Position | float) -> Position:
-        if isinstance(other, Position):
+    def __truediv__(self, other: Cords | float) -> Cords:
+        if isinstance(other, Cords):
             return self.new(self.x / other.x, self.y / other.y)
         return self.new(self.x / other, self.y / other)
 
-    def __floordiv__(self, other: Position | float) -> Position:
-        if isinstance(other, Position):
+    def __floordiv__(self, other: Cords | float) -> Cords:
+        if isinstance(other, Cords):
             return self.new(self.x // other.x, self.y // other.y)
         return self.new(self.x // other, self.y // other)
 
-    def __mul__(self, other: Position | float):
+    def __mul__(self, other: Cords | float):
         """
         Not valid mathematical implementation...
         :param other:
         :return:
         """
-        if isinstance(other, Position):
+        if isinstance(other, Cords):
             return self.new(self.x * other.x, self.y * other.y)
         return self.new(self.x * other, self.y * other)
 
@@ -123,10 +123,10 @@ class Position(list):
         return hash(id(self))
 
     def __eq__(self, other):
-        return self is other or (isinstance(other, Position) and self.x == other.x and self.y == other.y)
+        return self is other or (isinstance(other, Cords) and self.x == other.x and self.y == other.y)
 
     @classmethod
-    def new(cls, x: float, y: float) -> Position:
+    def new(cls, x: float, y: float) -> Cords:
         return cls(x, y)
 
     @property
@@ -161,7 +161,7 @@ class Position(list):
     def yx(self):
         return self.y, self.x
 
-    def dot(self, other: Position) -> float:
+    def dot(self, other: Cords) -> float:
         return self.x * other.x + self.y * other.y
 
     def move(self, x: float = 0, y: float = 0):

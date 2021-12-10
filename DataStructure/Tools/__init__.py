@@ -1,10 +1,10 @@
 from .locker import lock
-from .position import Position
+from .cords import Cords
 from .area import Rect, Shape
 
 __all__ = [
     "lock",
-    "Position",
+    "Cords",
     "Rect",
     "Shape"
 ]

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .Tools import lock, Position
+from .Tools import lock, Cords
 
 
 class Stats:
@@ -143,7 +143,7 @@ class EntityStats(Stats):
 
 
 class Entity:
-    def __init__(self, pos: Position, stats: EntityStats, status: Status):
+    def __init__(self, pos: Cords, stats: EntityStats, status: Status):
         """
         Entity class
         :param pos: position

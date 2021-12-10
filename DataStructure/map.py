@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .Tools import Position, Shape
+from .Tools import Shape
 
 
 class GridMap:
@@ -21,8 +21,8 @@ class MapChunk:
 
 
 class Map:
-    def __init__(self, tile: MapChunk, extra_tiles: dict[Position, MapChunk] | None = None):
-        self.tiles: dict[Position, MapChunk] = {Position(0, 0): tile}
+    def __init__(self, tile: MapChunk, extra_tiles: dict[tuple[int, int], MapChunk] | None = None):
+        self.tiles: dict[tuple[int, int], MapChunk] = {(0, 0): tile}
         extra_tiles = extra_tiles if extra_tiles else {}
         extra_copy = extra_tiles.copy()
         extra_copy.update(self.tiles)
