@@ -33,9 +33,7 @@ class Map:
 
 
 class Position:
-    # noinspection PyShadowingBuiltins
-    def __init__(self, map: Map, chunk: tuple[int, int], exact: tuple[int, int]):
-        self.map = map
+    def __init__(self, chunk: tuple[int, int], exact: tuple[int, int]):
         self.chunk = Cords(chunk)
         self.local = Cords(exact)
 
@@ -55,5 +53,37 @@ class Position:
     def exact(self, value: tuple[int, int]):
         self.local.goto(*value)
 
-    def exists(self) -> bool:
-        return self.chunk in self.map.tiles and self.map.tiles[self.area].grid.in_range(self.exact)
+    # noinspection PyShadowingBuiltins
+    def exists(self, map) -> bool:
+        return self.chunk in map.tiles and map.tiles[self.area].grid.in_range(self.exact)
+
+    def move(self, x: int, y: int):
+        """
+        Moves in place
+        :param x: change x by
+        :param y: change y by
+        """
+        self.local.move(x, y)
+
+    def clip_in(self, border: tuple[int, int]):
+        fix_x = 0
+        fix_y = 0
+
+        while not 0 < self.exact.x >= border[0]:
+            if self.exact.x < 0:
+                self.exact.x += border[0]
+                fix_x -= 1
+            else:
+                self.exact.x -= border[0]
+                fix_x += 1
+
+        while not 0 < self.exact.y >= border[1]:
+            if self.exact.y < 0:
+                self.exact.y += border[1]
+                fix_y -= 1
+            else:
+                self.exact.y -= border[1]
+                fix_y += 1
+
+        self.chunk.x += fix_x
+        self.chunk.y += fix_y
