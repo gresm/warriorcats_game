@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from .Tools import lock
-from .map import Position
+from .map import Position, Map, GridMap
 
 
 class Stats:
@@ -144,16 +144,25 @@ class EntityStats(Stats):
 
 
 class Entity:
-    def __init__(self, pos: Position, stats: EntityStats, status: Status):
+    def __init__(self, world: World, pos: Position, stats: EntityStats, status: Status):
         """
         Entity class
         :param pos: position
         :param stats: statistics of entity (not changing often, for example damage power, name)
         :param status: status of entity (changing often, fot example health, action)
         """
+        self.world = world
         self.pos = pos
-
         self.stats = stats
-
         self.status = status
         self.status.connect(self)
+
+    def move(self, by_x: int, by_y: int):
+        self.pos.move(by_x, by_y)
+        self.pos.clip_in(GridMap.size)
+
+
+class World:
+    def __init__(self, board: Map):
+        self.board = board
+        self.entities: set[Entity] = set()
