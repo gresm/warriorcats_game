@@ -1,3 +1,3 @@
 from . import Tools
-from . import entities
 from . import map
+from . import entities
