@@ -22,6 +22,21 @@ class Stats:
     def __getattr__(self, item):
         return self.stats[item]
 
+    def __setattr__(self, key, value):
+        if key in self.required_stats:
+            self.stats[key] = value
+        else:
+            raise ValueError(f"stat {key} doesn't exist")
+
+    def __getitem__(self, item):
+        return self.stats[item]
+
+    def __setitem__(self, key, value):
+        if key in self.required_stats:
+            self.stats[key] = value
+        else:
+            raise ValueError(f"stat {key} doesn't exist")
+
 
 class Effect:
     def __init__(self, lasting_time: int):
@@ -46,6 +61,7 @@ class Effect:
         Override me to change effect behaviour
         :return:
         """
+        pass
 
 
 class Effects:
