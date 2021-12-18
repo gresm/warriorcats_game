@@ -160,7 +160,7 @@ class EntityStats(Stats):
 
 
 class Entity:
-    def __init__(self, world: World, pos: Position, stats: EntityStats, status: Status):
+    def __init__(self, world: World | None, pos: Position, stats: EntityStats, status: Status):
         """
         Entity class
         :param pos: position
@@ -172,13 +172,41 @@ class Entity:
         self.stats = stats
         self.status = status
         self.status.connect(self)
+        self.killed: bool = False
+
+        self.respawn(world)
 
     def move(self, by_x: int, by_y: int):
         self.pos.move(by_x, by_y)
         self.pos.clip_in(GridMap.size)
+
+    def kill(self):
+        if not self.killed and self.world:
+            self.world.kill(self)
+            self.world = None
+            self.killed = True
+
+    def respawn(self, world: World):
+        """
+        Respawns entity
+        If is alive, it will be killed first and respawned in provided world.
+        :param world:
+        :return:
+        """
+        if self.killed:
+            self.world = world
+            self.world.entities.add(self)
+            self.killed = False
+        else:
+            self.kill()
+            self.respawn(world)
 
 
 class World:
     def __init__(self, board: Map):
         self.board = board
         self.entities: set[Entity] = set()
+
+    def kill(self, entity: Entity):
+        if entity in self.entities:
+            self.entities.remove(entity)
