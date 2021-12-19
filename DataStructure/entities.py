@@ -14,6 +14,12 @@ class Stats:
 
         self.stats = stats
 
+    def __init_subclass__(cls, **kwargs):
+        # noinspection PyUnresolvedReferences
+        if len(cls.mro()[1].required_stats) > 0:
+            # noinspection PyUnresolvedReferences
+            cls.required_stats.update(cls.mro()[1].required_stats)
+
     def __dir__(self):
         val = tuple(super().__dir__())
         val += tuple(self.required_stats)
@@ -92,7 +98,7 @@ class Effects:
 
 
 class Action:
-    _actions: dict[int, Action]
+    _actions: dict[int, Action] = {}
     _current_id = 0
 
     def __init__(self, name: str):
@@ -100,7 +106,7 @@ class Action:
         self.id = self._current_id
         self._current_id += 1
 
-        self._actions[self.id] = self
+        self.__class__._actions[self.id] = self
 
     def __eq__(self, other):
         return other is self or self.id == other or self.name == other
