@@ -6,19 +6,27 @@ from .map import Position, Map, GridMap
 
 class Stats:
     required_stats: set[str] = set()
+    stat_defaults: dict[str, ...] = {}
 
     def __init__(self, stats: dict[str, ...]):
         for name in self.required_stats:
-            if name not in stats:
+            if name not in stats and name not in self.stat_defaults:
                 raise ValueError(f"'{name}' is not given in setup")
 
-        self.stats = stats
+        df = self.stat_defaults.copy()
+        df.update(stats)
+        self.stats = df
 
     def __init_subclass__(cls, **kwargs):
         # noinspection PyUnresolvedReferences
         if len(cls.mro()[1].required_stats) > 0:
             # noinspection PyUnresolvedReferences
             cls.required_stats.update(cls.mro()[1].required_stats)
+
+        # noinspection PyUnresolvedReferences
+        if len(cls.mro()[1].stat_defaults) > 0:
+            # noinspection PyUnresolvedReferences
+            cls.stat_defaults.update(cls.mro()[1].stat_defaults)
 
     def __dir__(self):
         val = tuple(super().__dir__())
