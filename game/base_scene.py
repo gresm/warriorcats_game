@@ -22,6 +22,7 @@ class Scene:
         Scene.instances[self._instances_cnt] = self
         self.instance_id = self.current_instance_id()
         self._events: list[pg.event.Event] = []
+        self.init()
 
     def __init_subclass__(cls, **kwargs):
         Scene._scenes_cnt += 1
@@ -35,6 +36,9 @@ class Scene:
     @classmethod
     def current_class_id(cls):
         return Scene._scenes_cnt
+
+    def init(self):
+        pass
 
     def add_event_to_pool(self, event: pg.event.Event):
         self._events.append(event)
