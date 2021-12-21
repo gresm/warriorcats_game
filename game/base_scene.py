@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Type
+
 import pygame as pg
 
 
@@ -8,14 +10,16 @@ class Scene:
     instances: dict[int, Scene] = {}
 
     _scenes_cnt = -1
-    # noinspection PyUnresolvedReferences
-    scenes: dict[int, type[Scene]] = {}
+    scenes: dict[int, Type[Scene]] = {}
 
     class_id: int = -1
 
-    def __init__(self):
-        self._instances_cnt += 1
-        self.instances[self._instances_cnt] = self
+    scene_manager: SceneManager | None
+
+    def __init__(self, scene_manager: SceneManager | None = None):
+        self.manager = scene_manager
+        Scene._instances_cnt += 1
+        Scene.instances[self._instances_cnt] = self
         self.instance_id = self.current_instance_id()
 
     def __init_subclass__(cls, **kwargs):
@@ -25,11 +29,11 @@ class Scene:
 
     @classmethod
     def current_instance_id(cls):
-        return cls._instances_cnt
+        return Scene._instances_cnt
 
     @classmethod
     def current_class_id(cls):
-        return cls._scenes_cnt
+        return Scene._scenes_cnt
 
     def draw(self, surface: pg.Surface):
         pass
@@ -47,9 +51,11 @@ class SceneManager:
         if scene_id in Scene.instances:
             self.current = Scene.instances[scene_id]
 
-    def spawn_scene(self, scene_id):
-        if scene_id in Scene.scenes:
-            Scene.scenes[scene_id]()
-            self.current = Scene.instances[Scene.current_instance_id()]
+    def spawn_scene(self, scene_id: int | Type[Scene]):
+        if isinstance(scene_id, type) and issubclass(scene_id, Scene):
+            return self.spawn_scene(scene_id.class_id)
+        elif scene_id in Scene.scenes:
+            Scene.scenes[scene_id](self)
+            self.set_active_scene(Scene.current_instance_id())
             return Scene.current_instance_id()
         return -1

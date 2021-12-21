@@ -1,9 +1,15 @@
 import pygame as pg
 
+from game import scene_manager
+from game.scenes import MainMenuScene
+
+
 size = (800, 800)
 window = pg.display.set_mode(size)
-
 running = True
+
+scene_manager.spawn_scene(MainMenuScene)
+
 
 while running:
     for ev in pg.event.get():
@@ -11,5 +17,7 @@ while running:
             running = False
 
     window.fill((0, 0, 0))
+
+    scene_manager.draw(window)
 
     pg.display.update()
