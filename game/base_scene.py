@@ -21,6 +21,7 @@ class Scene:
         Scene._instances_cnt += 1
         Scene.instances[self._instances_cnt] = self
         self.instance_id = self.current_instance_id()
+        self._events: list[pg.event.Event] = []
 
     def __init_subclass__(cls, **kwargs):
         Scene._scenes_cnt += 1
@@ -35,7 +36,17 @@ class Scene:
     def current_class_id(cls):
         return Scene._scenes_cnt
 
+    def add_event_to_pool(self, event: pg.event.Event):
+        self._events.append(event)
+
+    def get_events(self):
+        for _ in range(len(self._events)):
+            yield self._events.pop()
+
     def draw(self, surface: pg.Surface):
+        pass
+
+    def update(self):
         pass
 
 
@@ -47,8 +58,14 @@ class SceneManager:
         if self.current is not None:
             self.current.draw(surface)
 
-    def set_active_scene(self, scene_id: int):
-        if scene_id in Scene.instances:
+    def update(self):
+        if self.current:
+            self.current.update()
+
+    def set_active_scene(self, scene_id: int | Scene):
+        if isinstance(scene_id, Scene):
+            self.current = scene_id
+        elif scene_id in Scene.instances:
             self.current = Scene.instances[scene_id]
 
     def spawn_scene(self, scene_id: int | Type[Scene]):
@@ -59,3 +76,6 @@ class SceneManager:
             self.set_active_scene(Scene.current_instance_id())
             return Scene.current_instance_id()
         return -1
+
+    def handle_events(self, event: pg.event.Event):
+        self.current.add_event_to_pool(event)

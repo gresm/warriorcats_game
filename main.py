@@ -15,6 +15,10 @@ while running:
     for ev in pg.event.get():
         if ev.type == pg.QUIT:
             running = False
+        else:
+            scene_manager.handle_events(ev)
+
+    scene_manager.update()
 
     window.fill((0, 0, 0))
 
