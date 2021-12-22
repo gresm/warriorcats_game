@@ -26,9 +26,13 @@ class MainMenuScene(BaseScene):
         for ev in self.get_events():
             if ev.type == pg.MOUSEBUTTONUP:
                 if self.play_rect.collidepoint(*ev.pos):
-                    pass
+                    self.manager.spawn_scene(PlayScene)
                 elif self.quit_rect.collidepoint(*ev.pos):
                     game.stop()
 
     def draw(self, surface: pg.Surface):
         surface.blit(menu_background, (0, 0))
+
+
+class PlayScene(BaseScene):
+    pass
