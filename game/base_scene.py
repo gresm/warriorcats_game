@@ -37,7 +37,7 @@ class Scene:
     def current_class_id(cls):
         return Scene._scenes_cnt
 
-    def init(self):
+    def init(self, *args, **kwargs):
         pass
 
     def add_event_to_pool(self, event: pg.event.Event):
@@ -83,3 +83,7 @@ class SceneManager:
 
     def handle_events(self, event: pg.event.Event):
         self.current.add_event_to_pool(event)
+
+    def init(self, *args, **kwargs):
+        if self.current:
+            self.current.init(*args, **kwargs)

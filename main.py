@@ -1,27 +1,28 @@
 import pygame as pg
 
-from game import scene_manager
+from game import scene_manager as scenes
+from game import size, game
 from game.scenes import MainMenuScene
 
-
-size = (800, 800)
-window = pg.display.set_mode(size)
-running = True
-
-scene_manager.spawn_scene(MainMenuScene)
+scenes.spawn_scene(MainMenuScene)
 
 
-while running:
+@game.frame
+def frame(window, delta_time):
     for ev in pg.event.get():
         if ev.type == pg.QUIT:
-            running = False
+            game.stop()
         else:
-            scene_manager.handle_events(ev)
+            scenes.handle_events(ev)
 
-    scene_manager.update()
+    scenes.update()
 
     window.fill((0, 0, 0))
 
-    scene_manager.draw(window)
+    scenes.draw(window)
 
     pg.display.update()
+
+
+if __name__ == '__main__':
+    game.run()
