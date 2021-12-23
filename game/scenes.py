@@ -3,6 +3,7 @@ from __future__ import annotations
 import pygame as pg
 
 from . import BaseScene, game, assets
+import data_structure as ds
 
 
 # PLAY X, Y = 90, 550
@@ -23,8 +24,10 @@ class MainMenuScene(BaseScene):
 
 
 class PlayScene(BaseScene):
+    world: ds.World
+
     def init(self, *args, **kwargs):
-        pass
+        self.world = ds.World(ds.Map())
 
     def update(self):
         pass

@@ -7,8 +7,8 @@ from .Tools import Shape, Cords
 
 class GridMap:
     size = (20, 20)
-    data_type = np.dtype([("tile_type", np.int_), ("texture", np.int_)])
-    default = 0
+    data_type = np.dtype([("tile_type", "i"), ("texture", "i")])
+    default = (0, 0)
 
     def __init__(self):
         self.map = np.full(self.size, self.default, dtype=self.data_type)
@@ -18,9 +18,9 @@ class GridMap:
 
 
 class MapChunk:
-    def __init__(self, triggers: dict[str, Shape], grid: GridMap):
-        self.triggers = triggers
+    def __init__(self, grid: GridMap, triggers: dict[str, Shape] | None = None):
         self.grid = grid
+        self.triggers = triggers if triggers else {}
 
 
 class Map:
@@ -87,3 +87,11 @@ class Position:
 
         self.chunk.x += fix_x
         self.chunk.y += fix_y
+
+
+__all__ = [
+    "Map",
+    "GridMap",
+    "MapChunk",
+    "Position"
+]
