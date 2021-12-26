@@ -10,8 +10,12 @@ class GridMap:
     data_type = np.dtype([("tile_type", "i"), ("texture", "i")])
     default = (0, 0)
 
-    def __init__(self):
-        self.map = np.full(self.size, self.default, dtype=self.data_type)
+    def __init__(self, board: list | None = None):
+        if board:
+            self.map = np.fromiter(list, self.data_type)
+            self.map.resize(self.size, refcheck=False)
+        else:
+            np.full(self.size, self.default, dtype=self.data_type)
 
     def in_range(self, pos: tuple[int, int]):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]

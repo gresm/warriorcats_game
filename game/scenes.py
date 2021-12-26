@@ -27,7 +27,7 @@ class PlayScene(BaseScene):
     world: ds.World
 
     def init(self, *args, **kwargs):
-        self.world = ds.World(ds.Map())
+        self.world = ds.World(assets.game.entry_map)
 
     def update(self):
         pass
