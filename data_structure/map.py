@@ -15,7 +15,9 @@ class GridMap:
             self.map = np.fromiter(list, self.data_type)
             self.map.resize(self.size, refcheck=False)
         else:
-            np.full(self.size, self.default, dtype=self.data_type)
+            self.map = np.zeros(self.size, dtype=self.data_type)
+            # noinspection PyTypeChecker
+            self.map.fill(self.default)
 
     def in_range(self, pos: tuple[int, int]):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]
