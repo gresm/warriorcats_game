@@ -31,7 +31,8 @@ class Console:
 
     def update(self):
         clear()
-        print(self.header)
+        if self.header:
+            print(self.header)
         for el in self.text:
             print(el)
 
@@ -42,6 +43,7 @@ console = Console()
 def main():
     while True:
         console.input("test: ")
+        console.clear()
         console.update()
 
 

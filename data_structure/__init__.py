@@ -6,3 +6,4 @@ from . import warriors
 from .entities import *
 from .warriors import *
 from .map import *
+from .abstract_structures import *
