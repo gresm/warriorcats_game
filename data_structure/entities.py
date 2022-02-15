@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from .Tools import lock
 from .map import Position, Map, GridMap
 
 
@@ -135,38 +134,35 @@ NoAction = Action("NoAction")
 
 
 class Info:
-    def __init__(self):
-        self.damage: int = 0
-
-        self.object: Entity | None = None
-
-    @lock
-    def connect(self, entity: Entity):
-        self.object = entity
+    def __init__(self, entity: Entity):
+        self.entity = entity
+        self._health: int = self.entity.stats["max_health"]
 
     @property
-    @connect.locked
+    def damage(self):
+        return self.entity.stats["max_health"] - self._health
+
+    @damage.setter
+    def damage(self, value):
+        self.health = self.entity.stats["max_health"] - value
+
+    @property
     def health(self):
-        return self.object.stats["max_health"]
+        return self._health
 
     @health.setter
-    @connect.locked
     def health(self, value):
-        self.damage = self.health - value
+        self._health = min(max(value, 0), self.entity.stats["max_health"])
+        if not self.health:
+            self.entity.kill()
 
 
 class Status:
-    def __init__(self, info: Info):
+    def __init__(self, entity: Entity, info: Info):
         self.effects: Effects = Effects()
         self.action: Action = NoAction
         self.info = info
-        self.object: Entity | None = None
-
-    @lock
-    def connect(self, entity: Entity):
-        self.object = entity
-        self.effects.connect(entity)
-        self.info.connect(entity)
+        self.entity = entity
 
 
 class EntityStats(Stats):
@@ -174,18 +170,17 @@ class EntityStats(Stats):
 
 
 class Entity:
-    def __init__(self, world: World | None, pos: Position, stats: EntityStats, status: Status):
+    def __init__(self, world: World | None, pos: Position, stats: EntityStats):
         """
         Entity class
         :param pos: position
         :param stats: statistics of entity (not changing often, for example damage power, name)
-        :param status: status of entity (changing often, fot example health, action)
         """
         self.world = world
         self.pos = pos
         self.stats = stats
-        self.status = status
-        self.status.connect(self)
+        self.info = Info(self)
+        self.status = Status(self, self.info)
         self.killed: bool = False
 
         self.respawn(world)
