@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .Tools import Shape, Cords
+from .tools import Shape, Cords
 
 
 class GridMap:

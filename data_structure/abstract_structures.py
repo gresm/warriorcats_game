@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from . import Entity
+from . import Entity, generate_tasks
 from enum import Enum
 
 
@@ -16,6 +16,7 @@ class RewardType(Enum):
     herbs = 2
     heal = 3
     full_heal = 4
+    damage = 5
 
 
 class TaskReward:
@@ -45,28 +46,72 @@ class TaskReward:
                     break
                 cat.info.damage = 0
                 heals_left -= 1
+        elif self.reward_type == RewardType.damage:
+            damages_left = self.amount
+            for cat in self.player.cats:
+                if not damages_left:
+                    break
+                cat.info.health -= 1
+                damages_left -= 1
 
 
 class BaseTask:
-    def __init__(self, player: Clan, task_type: TaskType, reward_amount: int, reward_type: RewardType):
+    def __init__(
+            self, player: Clan, task_type: TaskType, reward_amount: int, reward_type: RewardType, description: str
+    ):
         self.player = player
         self.task_type = task_type
         self.task_reward = TaskReward(player, reward_type, reward_amount)
+        self.description = description
+        self.done = False
+
+    def check(self):
+        if self.done:
+            return True
+        if self.is_done():
+            self.task_reward.process_task()
+            self.done = True
+            return True
+        return False
 
     def is_done(self) -> bool:
         pass
 
 
-# TODO: finish class
 class Tasks:
-    pass
+    def __init__(self, *tasks: BaseTask):
+        self.tasks = set(tasks)
+
+    def check(self):
+        remove_tasks = set()
+        for task in self.tasks:
+            if self.check():
+                remove_tasks.add(task)
+        for rm in remove_tasks:
+            self.tasks.remove(rm)
 
 
 class ClanStats:
     def __init__(self):
-        self.herbs = 0
-        self.prey = 0
+        self._herbs = 0
+        self._prey = 0
         self.coins = 0
+
+    @property
+    def herbs(self):
+        return self._herbs
+
+    @herbs.setter
+    def herbs(self, value):
+        self._herbs = max(value, 0)
+
+    @property
+    def prey(self):
+        return self.prey
+
+    @prey.setter
+    def prey(self, value):
+        self.prey = max(value, 0)
 
 
 class Clan:
@@ -74,8 +119,7 @@ class Clan:
         self.name = name
         self.stats = ClanStats()
         self.cats: set[Entity] = set()
-        # TODO: generate tasks
-        self.tasks = ...
+        self.tasks = generate_tasks(self)
 
 
 class Game:
@@ -110,5 +154,11 @@ class Game:
 
 __all__ = [
     "ClanStats",
-    "Clan"
+    "Clan",
+    "Game",
+    "Tasks",
+    "BaseTask",
+    "TaskReward",
+    "RewardType",
+    "TaskType"
 ]
