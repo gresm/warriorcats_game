@@ -116,7 +116,7 @@ _medium_tasks = [
 
 
 _big_tasks = [
-    OverpopulationProblemTask
+    OverpopulationProblemTask, HerbalistExpertTask
 ]
 
 
