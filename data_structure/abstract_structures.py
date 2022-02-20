@@ -6,8 +6,9 @@ from enum import Enum
 
 class TaskType(Enum):
     win = 0
-    reward = 1
-    punishment = 2
+    loose = 1
+    reward = 2
+    punishment = 3
 
 
 class RewardType(Enum):
@@ -17,6 +18,8 @@ class RewardType(Enum):
     heal = 3
     full_heal = 4
     damage = 5
+    win = 5
+    loose = 6
 
 
 class TaskReward:
