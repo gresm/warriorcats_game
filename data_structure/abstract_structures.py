@@ -118,17 +118,18 @@ class ClanStats:
 
 
 class Clan:
-    def __init__(self, name: str):
+    def __init__(self, name: str, game: Game):
         self.name = name
         self.stats = ClanStats()
         self.cats: set[Entity] = set()
         self.tasks = generate_tasks(self)
+        self.game = game
 
 
 class Game:
     def __init__(self, player1: str, *players: str):
         self._player_names = (player1, ) + players
-        self.players = {name: Clan(name) for name in self._player_names}
+        self.players = {name: Clan(name, self) for name in self._player_names}
         self.winners: set[Clan] = set()
         self.__player_names_iter = iter(self._player_names)
         self._current_player: str = ...

@@ -99,10 +99,23 @@ class SuicideTask(BaseTask):
 
 class LastClanStandingTask(BaseTask):
     def __init__(self, player: Clan):
+        self.max_cats = rd.randint(2, 3)
         super(LastClanStandingTask, self).__init__(
             player, TaskType.win, 1, RewardType.win,
-            f"Banish other clans from existence at any cost to get your revenge."
+            f"Banish other clans from existence at any cost to get your revenge (Make them have only {self.max_cats}"
+            f" cats)."
         )
+
+    def is_done(self):
+        for clan_name in self.player.game.players:
+            clan = self.player.game.players[clan_name]
+
+            if clan is self.player:
+                continue
+
+            if len(clan.cats) > self.max_cats:
+                return False
+        return True
 
 
 _small_tasks = [
@@ -129,15 +142,21 @@ def generate_tasks(player: Clan):
     tasks = set()
 
     for _ in range(rd.randint(3, 4)):
-        tasks.add(rd.choice(_small_tasks)(player))
+        tasks.add(rd.choice(_small_tasks))
 
     for _ in range(rd.randint(2, 3)):
-        tasks.add(rd.choice(_medium_tasks)(player))
+        tasks.add(rd.choice(_medium_tasks))
 
     for _ in range(rd.randint(1, 2)):
-        tasks.add(rd.choice(_big_tasks)(player))
-    tasks.add(rd.choice(_win_tasks)(player))
-    return Tasks(*tasks)
+        tasks.add(rd.choice(_big_tasks))
+    tasks.add(rd.choice(_win_tasks))
+
+    generated_tasks = set()
+
+    for task_type in tasks:
+        generated_tasks.add(task_type(player))
+
+    return Tasks(*generated_tasks)
 
 
 __all__ = [
