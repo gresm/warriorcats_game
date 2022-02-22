@@ -1,4 +1,4 @@
-from . import BaseTask, TaskType, Tasks, RewardType, Clan
+from .abstract_structures import BaseTask, TaskType, Tasks, RewardType, Clan
 from . import constants as cst
 
 import random as rd

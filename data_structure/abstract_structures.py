@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from . import Entity, generate_tasks
+from .entities import Entity
 from enum import Enum
 
 
@@ -119,6 +119,8 @@ class ClanStats:
 
 class Clan:
     def __init__(self, name: str, game: Game):
+        from .tasks import generate_tasks
+
         self.name = name
         self.stats = ClanStats()
         self.cats: set[Entity] = set()
