@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from .entities import Entity
+from .entities import Entity, World
+from .map import Map
 from enum import Enum
 
 
@@ -127,9 +128,15 @@ class Clan:
         self.tasks = generate_tasks(self)
         self.game = game
 
+    def add_cat(self, cat: Entity):
+        self.cats.add(cat)
+        self.game.world.entities.add(cat)
+
 
 class Game:
-    def __init__(self, player1: str, *players: str):
+    def __init__(self, game_map: Map, player1: str, *players: str):
+        self.game_map = game_map
+        self.world = World(self.game_map)
         self._player_names = (player1, ) + players
         self.players = {name: Clan(name, self) for name in self._player_names}
         self.winners: set[Clan] = set()
