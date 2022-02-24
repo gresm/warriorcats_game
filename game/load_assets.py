@@ -19,7 +19,11 @@ class game:
         pass
 
 
+font = _pg.font.SysFont("", 30)
+
+
 __all__ = [
     "menu",
-    "game"
+    "game",
+    "font"
 ]

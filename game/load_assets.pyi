@@ -14,10 +14,12 @@ class _Game:
 
 menu = _Menu
 game = _Game
+font: _pg.font.Font
 
 __all__ = [
     "menu",
-    "game"
+    "game",
+    "font
 ]
 
 del _Map

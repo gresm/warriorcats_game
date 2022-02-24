@@ -15,12 +15,61 @@ class MainMenuScene(BaseScene):
         for ev in self.get_events():
             if ev.type == pg.MOUSEBUTTONUP:
                 if assets.menu.play_rect.collidepoint(*ev.pos):
-                    self.manager.spawn_scene(PlayScene)
+                    self.manager.spawn_scene(LobbyScene)
                 elif assets.menu.quit_rect.collidepoint(*ev.pos):
                     game.stop()
 
     def draw(self, surface: pg.Surface):
         surface.blit(assets.menu.background, (0, 0))
+
+
+class LobbyScene(BaseScene):
+    player_names: list[str] = []
+    typing_text: str
+    text_max_with: int = 200
+    text_min_width: int = 50
+    text_height: int = 35
+    offset = 20, 20
+    right_buffer = 20
+    names_spacing = 20
+
+    def init(self, *args, **kwargs):
+        self.player_names = []
+        self.typing_text = ""
+
+    def update(self):
+        for ev in self.get_events():
+            if ev.type == pg.KEYDOWN:
+                if ev.unicode:
+                    if ev.unicode == "\r":
+                        self.player_names.append(self.typing_text)
+                        self.typing_text = ""
+                        continue
+                    elif ev.unicode == "\b":
+                        self.typing_text = self.typing_text[:-1]
+                        continue
+                    self.typing_text += ev.unicode
+                    if assets.font.size(self.typing_text)[0] > self.text_max_with:
+                        self.typing_text = self.typing_text[:-1]
+
+    def draw(self, surface: pg.Surface):
+        rend = assets.font.render(self.typing_text, False, "white")
+        surface.blit(rend, pg.Vector2(surface.get_rect().center) - rend.get_rect().center)
+
+        current_draw = pg.Vector2(self.offset)
+        for name in self.player_names:
+            rend = assets.font.render(name, False, "white")
+            new_pos = pg.Vector2(current_draw)
+            new_pos.x += max(rend.get_width() + self.names_spacing, self.text_min_width)
+
+            if new_pos.x > surface.get_width() - self.right_buffer:
+                new_pos.x = self.offset[0] + max(rend.get_width() + self.names_spacing, self.text_min_width)
+                new_pos.y += self.text_height
+                current_draw.x = self.offset[0]
+                current_draw.y += self.text_height
+
+            surface.blit(rend, current_draw)
+            current_draw = new_pos
 
 
 class PlayScene(BaseScene):
