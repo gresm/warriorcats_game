@@ -69,6 +69,9 @@ class LobbyScene(BaseScene):
                 current_draw.y += self.text_height
 
             surface.blit(rend, current_draw)
+            boundary = pg.Vector2(5, 5)
+            rect = pg.Rect(current_draw - boundary, pg.Vector2(rend.get_size()) + boundary * 2)
+            pg.draw.rect(surface, "white", rect, 1)
             current_draw = new_pos
 
 
