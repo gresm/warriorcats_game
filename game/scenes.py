@@ -24,7 +24,7 @@ class MainMenuScene(BaseScene):
 
 
 class LobbyScene(BaseScene):
-    player_names: list[str] = []
+    player_names: set[str] = set()
     typing_text: str
     text_max_with: int = 200
     text_min_width: int = 50
@@ -34,7 +34,7 @@ class LobbyScene(BaseScene):
     names_spacing = 20
 
     def init(self, *args, **kwargs):
-        self.player_names = []
+        self.player_names = set()
         self.typing_text = ""
 
     def update(self):
@@ -42,7 +42,9 @@ class LobbyScene(BaseScene):
             if ev.type == pg.KEYDOWN:
                 if ev.unicode:
                     if ev.unicode == "\r":
-                        self.player_names.append(self.typing_text)
+                        if len(self.typing_text) == 0:
+                            continue
+                        self.player_names.add(self.typing_text)
                         self.typing_text = ""
                         continue
                     elif ev.unicode == "\b":
@@ -53,6 +55,7 @@ class LobbyScene(BaseScene):
                         self.typing_text = self.typing_text[:-1]
 
     def draw(self, surface: pg.Surface):
+        surface.blit(assets.menu.lobby_background, (0, 0))
         rend = assets.font.render(self.typing_text, False, "white")
         surface.blit(rend, pg.Vector2(surface.get_rect().center) - rend.get_rect().center)
 

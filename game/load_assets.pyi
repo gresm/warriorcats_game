@@ -4,6 +4,7 @@ from data_structure import Map as _Map
 
 class _Menu:
     background: _pg.Surface
+    lobby_background: _pg.Surface
     play_rect: _pg.Rect
     quit_rect: _pg.Rect
 
@@ -19,7 +20,7 @@ font: _pg.font.Font
 __all__ = [
     "menu",
     "game",
-    "font
+    "font"
 ]
 
 del _Map
