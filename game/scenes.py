@@ -25,13 +25,15 @@ class MainMenuScene(BaseScene):
 
 class LobbyScene(BaseScene):
     player_names: set[str] = set()
+    player_names_list: list[str] = []
     typing_text: str
     text_max_with: int = 200
-    text_min_width: int = 50
     text_height: int = 35
     offset = 20, 20
     right_buffer = 20
     names_spacing = 20
+    typing_rect_border = pg.Vector2(10, 0)
+    name_min_length = 3
 
     def init(self, *args, **kwargs):
         self.player_names = set()
@@ -42,9 +44,10 @@ class LobbyScene(BaseScene):
             if ev.type == pg.KEYDOWN:
                 if ev.unicode:
                     if ev.unicode == "\r":
-                        if len(self.typing_text) == 0:
+                        if len(self.typing_text) < self.name_min_length or self.typing_text in self.player_names:
                             continue
                         self.player_names.add(self.typing_text)
+                        self.player_names_list.append(self.typing_text)
                         self.typing_text = ""
                         continue
                     elif ev.unicode == "\b":
@@ -60,13 +63,13 @@ class LobbyScene(BaseScene):
         surface.blit(rend, pg.Vector2(surface.get_rect().center) - rend.get_rect().center)
 
         current_draw = pg.Vector2(self.offset)
-        for name in self.player_names:
+        for name in self.player_names_list:
             rend = assets.font.render(name, False, "white")
             new_pos = pg.Vector2(current_draw)
-            new_pos.x += max(rend.get_width() + self.names_spacing, self.text_min_width)
+            new_pos.x += rend.get_width() + self.names_spacing
 
             if new_pos.x > surface.get_width() - self.right_buffer:
-                new_pos.x = self.offset[0] + max(rend.get_width() + self.names_spacing, self.text_min_width)
+                new_pos.x = self.offset[0] + rend.get_width() + self.names_spacing
                 new_pos.y += self.text_height
                 current_draw.x = self.offset[0]
                 current_draw.y += self.text_height
@@ -76,6 +79,16 @@ class LobbyScene(BaseScene):
             rect = pg.Rect(current_draw - boundary, pg.Vector2(rend.get_size()) + boundary * 2)
             pg.draw.rect(surface, "white", rect, 1)
             current_draw = new_pos
+
+        # draw the centered text box
+        rect = pg.Rect(
+            surface.get_rect().center - pg.Vector2(
+                self.text_max_with // 2, self.text_height // 2
+            ) - self.typing_rect_border,
+            pg.Vector2(self.text_max_with, self.text_height) + self.typing_rect_border * 2
+        )
+
+        pg.draw.rect(surface, "white", rect, 1)
 
 
 class PlayScene(BaseScene):
