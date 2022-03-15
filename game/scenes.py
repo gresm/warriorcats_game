@@ -35,9 +35,12 @@ class LobbyScene(BaseScene):
     typing_rect_border = pg.Vector2(10, 0)
     name_min_length = 3
 
+    next_button_rect: pg.Rect
+
     def init(self, *args, **kwargs):
         self.player_names = set()
         self.typing_text = ""
+        self.next_button_rect = pg.Rect(0, 0, 0, 0)
 
     def update(self):
         for ev in self.get_events():
@@ -56,6 +59,10 @@ class LobbyScene(BaseScene):
                     self.typing_text += ev.unicode
                     if assets.font.size(self.typing_text)[0] > self.text_max_with:
                         self.typing_text = self.typing_text[:-1]
+            elif ev.type == pg.MOUSEBUTTONUP:
+                # if there are at least 2 players and the next button is clicked
+                if len(self.player_names) > 1 and self.next_button_rect.collidepoint(*ev.pos):
+                    self.manager.spawn_scene(GameScene)
 
     def draw(self, surface: pg.Surface):
         surface.blit(assets.menu.lobby_background, (0, 0))
@@ -90,12 +97,23 @@ class LobbyScene(BaseScene):
 
         pg.draw.rect(surface, "white", rect, 1)
 
+        # draw "continue" button if there are at least 2 players
+        if len(self.player_names) >= 2:
+            self.next_button_rect = surface.blit(
+                assets.menu.continue_button,
+                (
+                    surface.get_width() - assets.menu.continue_button.get_width(),
+                    surface.get_height() - assets.menu.continue_button.get_height()
+                )
+            )
 
-class PlayScene(BaseScene):
-    world: ds.World
+
+class GameScene(BaseScene):
+    game: ds.Game
 
     def init(self, *args, **kwargs):
-        self.world = ds.World(assets.game.entry_map)
+        # create game using player names and game map from assets
+        self.game = ds.Game(assets.game.entry_map, *LobbyScene.player_names_list)
 
     def update(self):
         pass
