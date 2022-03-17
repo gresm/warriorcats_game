@@ -2,6 +2,8 @@ import pygame as _pg
 
 from data_structure import Map as _Map
 
+from . import SpriteSheet as __SpriteSheet
+
 class __Menu:
     background: _pg.Surface
     lobby_background: _pg.Surface
@@ -17,6 +19,7 @@ class __Game:
 menu = __Menu
 game = __Game
 font: _pg.font.Font
+sprite_sheet: __SpriteSheet
 
 __all__ = [
     "menu",
