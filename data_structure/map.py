@@ -1,8 +1,13 @@
 from __future__ import annotations
 
 import numpy as np
+import numpy.typing as npt
 
 from .tools import Shape, Cords
+
+
+_MapDType: npt.DTypeLike = np.dtype([("tile_type", "i"), ("texture", "i")])
+_MapNDAType = npt.NDArray[_MapDType]
 
 
 class GridMap:
@@ -10,14 +15,17 @@ class GridMap:
     data_type = np.dtype([("tile_type", "i"), ("texture", "i")])
     default = (0, 0)
 
+    map: _MapNDAType
+
     def __init__(self, board: list | None = None):
+        self.map: _MapNDAType
+
         if board:
             self.map = np.fromiter(list, self.data_type)
             self.map.resize(self.size, refcheck=False)
         else:
-            self.map = np.zeros(self.size, dtype=self.data_type)
-            # noinspection PyTypeChecker
-            self.map.fill(self.default)
+            lst_map = [self.default for _ in range(self.size[0])] * self.size[1]
+            self.map = np.array(lst_map, dtype=self.data_type)
 
     def in_range(self, pos: tuple[int, int]):
         return 0 <= pos[0] < self.size[0] and 0 <= pos[1] < self.size[1]

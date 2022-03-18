@@ -120,3 +120,12 @@ class GameScene(BaseScene):
 
     def draw(self, surface: pg.Surface):
         pass
+
+    def draw_chunk(self, surface: pg.Surface, chunk_x: int, chunk_y: int):
+        # get the chunk from the game world map using the chunk coordinates
+        chunk = self.game.world.board.tiles[(chunk_x, chunk_y)]
+        grid = chunk.grid
+        # iterate over tiles in the chunk
+        for line in grid.map:
+            for tile in line:
+                pass
