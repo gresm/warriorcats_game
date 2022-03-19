@@ -21,7 +21,7 @@ class SpriteSheet:
         self.elements: dict[str, pg.Surface | IndexedSpriteSheet] = {}
         self.error_image = load.image("missing.png")
 
-    def get_element(self, name: str) -> pg.Surface | IndexedSpriteSheet:
+    def get_element(self, name: str, is_indexed: bool = False, auto: bool = False) -> pg.Surface | IndexedSpriteSheet:
         # Check if element exists in config, if not, return error image
         if name not in self.config:
             return self.error_image
@@ -38,31 +38,40 @@ class SpriteSheet:
                 )
             self.elements[name] = self.image.subsurface(self.config[name])
 
-        return self.elements[name]
+        # Return element, if indexed, return indexed sprite sheet, if not, return surface
+        # Unless auto is True, in which case return the automatically loaded element
+
+        if auto:
+            return self.elements[name]
+
+        if is_indexed:
+            ret = self.elements[name]
+            if isinstance(ret, IndexedSpriteSheet):
+                return ret
+            return IndexedSpriteSheet(ret, ret.get_size())
+
+        ret = self.elements[name]
+        if isinstance(ret, IndexedSpriteSheet):
+            return ret.image
+        return ret
 
 
 class IndexedSpriteSheet:
     def __init__(self, image: pg.Surface, tile_size: tuple[int, int]):
         self.image = image
         self.tile_size = tile_size
-        self.elements: dict[tuple[int, int], pg.Surface] = {}
+        self.elements: list[pg.Surface] = []
         self.error_image = load.image("missing.png")
 
-    def get_element(self, index: tuple[int, int]) -> pg.Surface:
-        # Check if element index is in range, if not, return error image scaled to tile size
-        if index[0] < 0 or index[0] >= self.image.get_width() // self.tile_size[0]:
-            return pg.transform.scale(self.error_image, self.tile_size)
-        if index[1] < 0 or index[1] >= self.image.get_height() // self.tile_size[1]:
-            return pg.transform.scale(self.error_image, self.tile_size)
+        # Create list of elements
+        for i in range(0, self.image.get_width(), self.tile_size[0]):
+            for j in range(0, self.image.get_height(), self.tile_size[1]):
+                self.elements.append(self.image.subsurface((i, j, self.tile_size[0], self.tile_size[1])))
 
-        # Check if element has already been loaded, if not, load it
-        if index not in self.elements:
-            self.elements[index] = self.image.subsurface(
-                pg.Rect(
-                    index[0] * self.tile_size[0], index[1] * self.tile_size[1],
-                    self.tile_size[0], self.tile_size[1]
-                )
-            )
+    def get_element(self, index: int) -> pg.Surface:
+        # Check if element index is in range, if not, return error image scaled to tile size
+        if index < 0 or index >= len(self.elements):
+            return pg.transform.scale(self.error_image, self.tile_size)
 
         return self.elements[index]
 
