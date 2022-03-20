@@ -41,12 +41,12 @@ clock = pg.time.Clock()
 
 # Define extra variables
 current_selection: pg.Rect | None = None
-start_pressing = pg.Vector2(0, 0)
-image_offset = pg.Vector2(0, 0)
+start_pressing = pg.Vector2()
+cached_image = image.copy()
+image_offset = pg.Vector2(cached_image.get_rect().center)
 zoom = 1
 zoom_down_speed = 0.9
 zoom_up_speed = 1/zoom_down_speed
-cached_image = image.copy()
 
 
 # Define some constants
@@ -66,7 +66,7 @@ while running:
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # Left click
-                start_pressing = pg.Vector2(event.pos)
+                start_pressing = pg.Vector2(event.pos) - image_offset
                 # If we have a current selection, we are removing it
                 if current_selection:
                     current_selection = None
@@ -76,6 +76,10 @@ while running:
             elif event.button == 3:
                 # Right click
                 pass
+        elif event.type == pg.MOUSEBUTTONUP:
+            if event.button == 1:
+                # Left click
+                start_pressing = event.pos - image_offset
 
     # Read currently pressed mouse keys
     mouse_pressed = pg.mouse.get_pressed()
@@ -86,7 +90,7 @@ while running:
         if current_selection is None:
             current_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
         else:
-            current_selection.size = pg.Vector2(mouse_pos) - start_pressing
+            current_selection.size = pg.Vector2(mouse_pos) - start_pressing - image_offset
 
     # Read currently pressed keys
     keys_pressed = pg.key.get_pressed()
@@ -129,6 +133,9 @@ while running:
     reload_cached_image = False
 
     # Zoom
+    old_zoom = zoom
+    old_center = pg.Vector2(cached_image.get_rect().center)
+
     if keys_pressed[pg.K_EQUALS]:
         zoom *= zoom_up_speed
         reload_cached_image = True
@@ -167,9 +174,11 @@ while running:
     window.fill((0, 0, 0))
 
     # Draw the image
-    window.blit(cached_image, image_offset)
+    window.blit(cached_image, image_offset - cached_image.get_rect().center)
     if current_selection:
-        pg.draw.rect(window, (255, 0, 0), current_selection, 1)
+        drawable_rect = current_selection.copy()
+        drawable_rect.topleft += image_offset
+        pg.draw.rect(window, (255, 0, 0), drawable_rect, 1)
 
     # Update the display
     pg.display.update()
