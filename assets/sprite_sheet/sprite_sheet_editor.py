@@ -32,6 +32,7 @@ image = pg.image.load(str(editing_image))
 # Create a window of image size
 pg.init()
 window = pg.display.set_mode(image.get_size())
+center = pg.Vector2(image.get_width() // 2, image.get_height() // 2)
 
 # Mainloop variables
 running = True
@@ -43,7 +44,7 @@ clock = pg.time.Clock()
 current_selection: pg.Rect | None = None
 start_pressing = pg.Vector2()
 cached_image = image.copy()
-image_offset = pg.Vector2(cached_image.get_rect().center)
+image_offset = pg.Vector2(0, 0)
 zoom = 1
 zoom_down_speed = 0.9
 zoom_up_speed = 1/zoom_down_speed
@@ -54,8 +55,32 @@ RIGHT = pg.Vector2(1, 0)
 DOWN = pg.Vector2(0, 1)
 
 
+# Define some functions
+def point_on_image(point: pg.Vector2 | tuple) -> pg.Vector2:
+    """
+    Get the point position on the image, taking into account the zoom and the image offset
+    """
+    if isinstance(point, tuple):
+        point = pg.Vector2(point)
+    return point - image_offset * zoom
+    # return (point - image_offset) / zoom
+
+
+def get_mouse_on_image() -> pg.Vector2:
+    """
+    Get the mouse position on the image, taking into account the zoom and the image offset
+    """
+    return point_on_image(pg.mouse.get_pos())
+
+
 # Mainloop
 while running:
+    # Set some variables before the loop
+    reload_cached_image = False
+    mouse_pressed = pg.mouse.get_pressed()
+    mouse_pos = get_mouse_on_image()
+    keys_pressed = pg.key.get_pressed()
+
     # Events
     for event in pg.event.get():
         if event.type == pg.QUIT:
@@ -63,10 +88,15 @@ while running:
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
                 running = False
+            elif event.key == pg.K_BACKQUOTE:
+                # Reset zoom and image offset
+                zoom = 1
+                image_offset = pg.Vector2(0, 0)
+                reload_cached_image = True
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # Left click
-                start_pressing = pg.Vector2(event.pos) - image_offset
+                start_pressing = point_on_image(event.pos)
                 # If we have a current selection, we are removing it
                 if current_selection:
                     current_selection = None
@@ -79,21 +109,15 @@ while running:
         elif event.type == pg.MOUSEBUTTONUP:
             if event.button == 1:
                 # Left click
-                start_pressing = event.pos - image_offset
-
+                start_pressing = pg.Vector2(0, 0)
     # Read currently pressed mouse keys
-    mouse_pressed = pg.mouse.get_pressed()
-    mouse_pos = pg.mouse.get_pos()
 
     if mouse_pressed[0]:
         # Left click
         if current_selection is None:
             current_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
         else:
-            current_selection.size = pg.Vector2(mouse_pos) - start_pressing - image_offset
-
-    # Read currently pressed keys
-    keys_pressed = pg.key.get_pressed()
+            current_selection.size = get_mouse_on_image() - start_pressing
 
     # Selection manipulation
 
@@ -129,8 +153,6 @@ while running:
         current_selection = None
     if keys_pressed[pg.K_BACKSPACE]:
         current_selection = None
-
-    reload_cached_image = False
 
     # Zoom
     old_zoom = zoom
@@ -174,10 +196,11 @@ while running:
     window.fill((0, 0, 0))
 
     # Draw the image
-    window.blit(cached_image, image_offset - cached_image.get_rect().center)
+    image_blit_rect = cached_image.get_rect()
+    image_blit_rect.center = center + image_offset
+    window.blit(cached_image, image_blit_rect)
     if current_selection:
         drawable_rect = current_selection.copy()
-        drawable_rect.topleft += image_offset
         pg.draw.rect(window, (255, 0, 0), drawable_rect, 1)
 
     # Update the display
