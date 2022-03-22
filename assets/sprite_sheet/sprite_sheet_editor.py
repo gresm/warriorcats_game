@@ -41,7 +41,8 @@ clock = pg.time.Clock()
 
 
 # Define extra variables
-current_selection: pg.Rect | None = None
+real_selection: pg.Rect | None = None
+cached_selection: pg.Rect | None = None
 start_pressing = pg.Vector2()
 cached_image = image.copy()
 image_offset = pg.Vector2(0, 0)
@@ -77,6 +78,7 @@ def get_mouse_on_image() -> pg.Vector2:
 while running:
     # Set some variables before the loop
     reload_cached_image = False
+    reload_cached_selection = False
     mouse_pressed = pg.mouse.get_pressed()
     mouse_pos = get_mouse_on_image()
     keys_pressed = pg.key.get_pressed()
@@ -96,63 +98,75 @@ while running:
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # Left click
-                start_pressing = point_on_image(event.pos)
+                start_pressing = pg.Vector2(event.pos)
                 # If we have a current selection, we are removing it
-                if current_selection:
-                    current_selection = None
+                if real_selection:
+                    real_selection = None
+                    reload_cached_selection = True
             elif event.button == 2:
                 # Middle click
                 pass
             elif event.button == 3:
                 # Right click
                 pass
-        elif event.type == pg.MOUSEBUTTONUP:
-            if event.button == 1:
-                # Left click
-                start_pressing = pg.Vector2(0, 0)
-    # Read currently pressed mouse keys
+
+    # Handle currently pressed mouse/keyboard keys
 
     if mouse_pressed[0]:
         # Left click
-        if current_selection is None:
-            current_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
+        if real_selection is None:
+            real_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
         else:
-            current_selection.size = get_mouse_on_image() - start_pressing
+            real_selection = pg.Rect(start_pressing, mouse_pos - start_pressing)
+        reload_cached_selection = True
 
     # Selection manipulation
 
-    if keys_pressed[pg.K_LEFT]:
-        current_selection.size -= RIGHT
-    if keys_pressed[pg.K_RIGHT]:
-        current_selection.size += RIGHT
-    if keys_pressed[pg.K_UP]:
-        current_selection.size -= DOWN
-    if keys_pressed[pg.K_DOWN]:
-        current_selection.size += DOWN
-    if keys_pressed[pg.K_w]:
-        current_selection.topleft -= DOWN
-    if keys_pressed[pg.K_s]:
-        current_selection.topleft += DOWN
-    if keys_pressed[pg.K_a]:
-        current_selection.topleft -= RIGHT
-    if keys_pressed[pg.K_d]:
-        current_selection.topleft += RIGHT
-    if keys_pressed[pg.K_i]:
-        current_selection.size += DOWN
-        current_selection.topleft -= DOWN
-    if keys_pressed[pg.K_k]:
-        current_selection.size -= DOWN
-        current_selection.topleft += DOWN
-    if keys_pressed[pg.K_j]:
-        current_selection.size += RIGHT
-        current_selection.topleft -= RIGHT
-    if keys_pressed[pg.K_l]:
-        current_selection.size -= RIGHT
-        current_selection.topleft += RIGHT
-    if keys_pressed[pg.K_DELETE]:
-        current_selection = None
-    if keys_pressed[pg.K_BACKSPACE]:
-        current_selection = None
+    # Check if selection exists
+    if real_selection:
+        if keys_pressed[pg.K_LEFT]:
+            real_selection.size -= RIGHT
+            reload_cached_selection = True
+        if keys_pressed[pg.K_RIGHT]:
+            real_selection.size += RIGHT
+            reload_cached_selection = True
+        if keys_pressed[pg.K_UP]:
+            real_selection.size -= DOWN
+            reload_cached_selection = True
+        if keys_pressed[pg.K_DOWN]:
+            real_selection.size += DOWN
+            reload_cached_selection = True
+        if keys_pressed[pg.K_w]:
+            real_selection.topleft -= DOWN
+            reload_cached_selection = True
+        if keys_pressed[pg.K_s]:
+            real_selection.topleft += DOWN
+            reload_cached_selection = True
+        if keys_pressed[pg.K_a]:
+            real_selection.topleft -= RIGHT
+            reload_cached_selection = True
+        if keys_pressed[pg.K_d]:
+            real_selection.topleft += RIGHT
+            reload_cached_selection = True
+        if keys_pressed[pg.K_i]:
+            real_selection.size += DOWN
+            real_selection.topleft -= DOWN
+            reload_cached_selection = True
+        if keys_pressed[pg.K_k]:
+            real_selection.size -= DOWN
+            real_selection.topleft += DOWN
+            reload_cached_selection = True
+        if keys_pressed[pg.K_j]:
+            real_selection.size += RIGHT
+            real_selection.topleft -= RIGHT
+            reload_cached_selection = True
+        if keys_pressed[pg.K_l]:
+            real_selection.size -= RIGHT
+            real_selection.topleft += RIGHT
+            reload_cached_selection = True
+        if keys_pressed[pg.K_DELETE] or keys_pressed[pg.K_BACKSPACE]:
+            real_selection = None
+            reload_cached_selection = True
 
     # Zoom
     old_zoom = zoom
@@ -161,12 +175,15 @@ while running:
     if keys_pressed[pg.K_EQUALS]:
         zoom *= zoom_up_speed
         reload_cached_image = True
+        reload_cached_selection = True
     if keys_pressed[pg.K_MINUS]:
         zoom *= zoom_down_speed
         reload_cached_image = True
+        reload_cached_selection = True
     if keys_pressed[pg.K_0]:
         zoom = 1
         reload_cached_image = True
+        reload_cached_selection = True
 
     # Update image offset with t, g, f, h
     if keys_pressed[pg.K_t]:
@@ -186,11 +203,27 @@ while running:
         zoom *= zoom_down_speed
         reload_cached_image = True
 
-    # Reload cached image, if needed
+    # Keep zoom above 0
+    if zoom == 0:
+        zoom = 0.00001
+
+    # Reload cached image if needed
     if reload_cached_image:
-        if zoom == 0:
-            zoom = 0.00001
+        # Reload image
         cached_image = pg.transform.scale(image, (int(image.get_width() * zoom), int(image.get_height() * zoom)))
+
+    # Reload cached selection if needed
+    if reload_cached_selection:
+        # Check if selection exists
+        if real_selection:
+            # Copy selection
+            cached_selection = real_selection.copy()
+
+            # Rescale cached selection
+            cached_selection.size = (int(cached_selection.size[0] * zoom), int(cached_selection.size[1] * zoom))
+        else:
+            # Set cached selection to None
+            cached_selection = None
 
     # Clear window
     window.fill((0, 0, 0))
@@ -199,9 +232,9 @@ while running:
     image_blit_rect = cached_image.get_rect()
     image_blit_rect.center = center + image_offset
     window.blit(cached_image, image_blit_rect)
-    if current_selection:
-        drawable_rect = current_selection.copy()
-        pg.draw.rect(window, (255, 0, 0), drawable_rect, 1)
+
+    if cached_selection:
+        pg.draw.rect(window, (255, 0, 0), cached_selection, 1)
 
     # Update the display
     pg.display.update()
