@@ -82,6 +82,9 @@ while running:
     mouse_pressed = pg.mouse.get_pressed()
     mouse_pos = get_mouse_on_image()
     keys_pressed = pg.key.get_pressed()
+    cached_image_rect = cached_image.get_rect().copy()
+    image_offset.x = int(image_offset.x)
+    image_offset.y = int(image_offset.y)
 
     # Events
     for event in pg.event.get():
@@ -98,7 +101,7 @@ while running:
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # Left click
-                start_pressing = pg.Vector2(event.pos)
+                start_pressing = pg.Vector2(event.pos) - center
                 # If we have a current selection, we are removing it
                 if real_selection:
                     real_selection = None
@@ -110,6 +113,12 @@ while running:
                 # Right click
                 pass
 
+    # Define some variables after the events loop
+    if cached_selection:
+        cached_selection_center = pg.Vector2(cached_selection.center)
+    else:
+        cached_selection_center = None
+
     # Handle currently pressed mouse/keyboard keys
 
     if mouse_pressed[0]:
@@ -117,7 +126,7 @@ while running:
         if real_selection is None:
             real_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
         else:
-            real_selection = pg.Rect(start_pressing, mouse_pos - start_pressing)
+            real_selection = pg.Rect(start_pressing, mouse_pos - start_pressing - center)
         reload_cached_selection = True
 
     # Selection manipulation
@@ -169,8 +178,6 @@ while running:
             reload_cached_selection = True
 
     # Zoom
-    old_zoom = zoom
-    old_center = pg.Vector2(cached_image.get_rect().center)
 
     if keys_pressed[pg.K_EQUALS]:
         zoom *= zoom_up_speed
@@ -221,6 +228,10 @@ while running:
 
             # Rescale cached selection
             cached_selection.size = (int(cached_selection.size[0] * zoom), int(cached_selection.size[1] * zoom))
+
+            # Reposition cached selection relatively to cached image
+            cached_selection.topleft = pg.Vector2(real_selection.topleft) * zoom
+
         else:
             # Set cached selection to None
             cached_selection = None
@@ -234,7 +245,9 @@ while running:
     window.blit(cached_image, image_blit_rect)
 
     if cached_selection:
-        pg.draw.rect(window, (255, 0, 0), cached_selection, 1)
+        selection_blit_rect = cached_selection.copy()
+        selection_blit_rect.center = pg.Vector2(selection_blit_rect.center) + center + image_offset
+        pg.draw.rect(window, (255, 0, 0), selection_blit_rect, 1)
 
     # Update the display
     pg.display.update()
