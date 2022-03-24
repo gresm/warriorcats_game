@@ -62,9 +62,8 @@ def point_on_image(point: pg.Vector2 | tuple) -> pg.Vector2:
     Get the point position on the image, taking into account the zoom and the image offset
     """
     if isinstance(point, tuple):
-        point = pg.Vector2(point)
-    return point - image_offset * zoom
-    # return (point - image_offset) / zoom
+        point = pg.Vector2(point) - center
+    return (point - image_offset) / zoom
 
 
 def get_mouse_on_image() -> pg.Vector2:
@@ -79,6 +78,7 @@ while running:
     # Set some variables before the loop
     reload_cached_image = False
     reload_cached_selection = False
+    reload_all = False
     mouse_pressed = pg.mouse.get_pressed()
     mouse_pos = get_mouse_on_image()
     keys_pressed = pg.key.get_pressed()
@@ -97,11 +97,11 @@ while running:
                 # Reset zoom and image offset
                 zoom = 1
                 image_offset = pg.Vector2(0, 0)
-                reload_cached_image = True
+                reload_all = True
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # Left click
-                start_pressing = pg.Vector2(event.pos) - center
+                start_pressing = pg.Vector2(mouse_pos)
                 # If we have a current selection, we are removing it
                 if real_selection:
                     real_selection = None
@@ -126,7 +126,7 @@ while running:
         if real_selection is None:
             real_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
         else:
-            real_selection = pg.Rect(start_pressing, mouse_pos - start_pressing - center)
+            real_selection = pg.Rect(start_pressing, mouse_pos - start_pressing)
         reload_cached_selection = True
 
     # Selection manipulation
@@ -178,19 +178,15 @@ while running:
             reload_cached_selection = True
 
     # Zoom
-
     if keys_pressed[pg.K_EQUALS]:
         zoom *= zoom_up_speed
-        reload_cached_image = True
-        reload_cached_selection = True
+        reload_all = True
     if keys_pressed[pg.K_MINUS]:
         zoom *= zoom_down_speed
-        reload_cached_image = True
-        reload_cached_selection = True
+        reload_all = True
     if keys_pressed[pg.K_0]:
         zoom = 1
-        reload_cached_image = True
-        reload_cached_selection = True
+        reload_all = True
 
     # Update image offset with t, g, f, h
     if keys_pressed[pg.K_t]:
@@ -205,14 +201,18 @@ while running:
     # Additional zoom keys with r, y
     if keys_pressed[pg.K_r]:
         zoom *= zoom_up_speed
-        reload_cached_image = True
+        reload_all = True
     if keys_pressed[pg.K_y]:
         zoom *= zoom_down_speed
-        reload_cached_image = True
+        reload_all = True
 
     # Keep zoom above 0
     if zoom == 0:
         zoom = 0.00001
+
+    if reload_all:
+        reload_cached_image = True
+        reload_cached_selection = True
 
     # Reload cached image if needed
     if reload_cached_image:
