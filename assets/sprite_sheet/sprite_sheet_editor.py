@@ -4,6 +4,7 @@ Editor for sprite sheets
 from __future__ import annotations
 
 import sys
+import importlib.util
 import json
 
 import pygame as pg
@@ -26,6 +27,17 @@ else:
 
 assert editing_image.exists()
 
+if not output_json.exists():
+    print("Creating output file...")
+    output_json.touch()
+
+# Import custom_loaders.py
+custom_loaders_path = Path(__file__).parent.parent.parent / "game" / "custom_loaders.py"
+custom_loaders_spec = importlib.util.spec_from_file_location("custom_loaders", str(custom_loaders_path))
+custom_loaders = importlib.util.module_from_spec(custom_loaders_spec)
+custom_loaders_spec.loader.exec_module(custom_loaders)
+SpriteSheet = custom_loaders.SpriteSheet
+
 # Load the image
 image = pg.image.load(str(editing_image))
 
@@ -33,6 +45,7 @@ image = pg.image.load(str(editing_image))
 pg.init()
 window = pg.display.set_mode(image.get_size())
 center = pg.Vector2(image.get_width() // 2, image.get_height() // 2)
+sprite_sheet = SpriteSheet(image.copy())
 
 # Mainloop variables
 running = True
@@ -98,6 +111,17 @@ while running:
                 zoom = 1
                 image_offset = pg.Vector2(0, 0)
                 reload_all = True
+            elif event.key == pg.K_SPACE:
+                # Add selection to the sprite sheet
+                if real_selection is not None:
+                    pg.display.quit()
+                    name = input("Name of the element: ")
+                    sprite_sheet.add_element(name, tuple(real_selection))
+                    real_selection = None
+                    reload_all = True
+
+                    pg.display.init()
+                    window = pg.display.set_mode(image.get_size())
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # Left click
@@ -254,3 +278,11 @@ while running:
 
     # Update the clock
     clock.tick(fps)
+
+
+# Close the window
+pg.quit()
+
+# Save the sprite sheet
+raw = json.dumps(sprite_sheet.config)
+output_json.write_text(raw)
