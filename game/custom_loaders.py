@@ -8,18 +8,31 @@ from __future__ import annotations
 from pathlib import Path
 import json
 import pygame as pg
-from pygame_assets import load
 from pygame_assets.loaders import loader
+
+
+def load_image(name: str):
+    """
+    Load an image from the assets folder
+    :param name:
+    :return:
+    """
+    return pg.image.load(str(Path(__file__).parent.parent / "assets" / "image" / name)).convert_alpha()
 
 
 class SpriteSheet:
     def __init__(
-            self, image: pg.Surface, config: dict[str, tuple[int, int, int, int] | tuple[int, int, int, int, int, int]]
+            self,
+            image: pg.Surface,
+            config: dict[str, tuple[int, int, int, int] | tuple[int, int, int, int, int, int]] | None = None,
     ):
-        self.config = config
+        self.config = config if config else {}
         self.image = image
         self.elements: dict[str, pg.Surface | IndexedSpriteSheet] = {}
-        self.error_image = load.image("missing.png")
+        self.error_image = load_image("missing.png")
+
+    def add_element(self, name: str, element: tuple[int, int, int, int] | tuple[int, int, int, int, int, int]):
+        self.config[name] = element
 
     def get_element(self, name: str, is_indexed: bool = False, auto: bool = False) -> pg.Surface | IndexedSpriteSheet:
         # Check if element exists in config, if not, return error image
@@ -61,7 +74,7 @@ class IndexedSpriteSheet:
         self.image = image
         self.tile_size = tile_size
         self.elements: list[pg.Surface] = []
-        self.error_image = load.image("missing.png")
+        self.error_image = load_image("missing.png")
 
         # Create list of elements
         for i in range(0, self.image.get_width(), self.tile_size[0]):
@@ -88,7 +101,7 @@ def sprite_sheet(filepath, config: dict[str, tuple[int, int, int, int]] | str):
 
     path = Path(filepath)
     print(filepath)
-    return SpriteSheet(load.image(str(path)), config)
+    return SpriteSheet(load_image(str(path)), config)
 
 
 __all__ = [
