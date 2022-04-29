@@ -41,16 +41,28 @@ SpriteSheet = custom_loaders.SpriteSheet
 # Load the image
 image = pg.image.load(str(editing_image))
 
-# Create a window of image size
+# Create a window
 pg.init()
-window = pg.display.set_mode(image.get_size())
-center = pg.Vector2(image.get_width() // 2, image.get_height() // 2)
-sprite_sheet = SpriteSheet(image.copy())
+window = pg.display.set_mode((0, 0))
+center = pg.Vector2(window.get_width() // 2, window.get_height() // 2)
 
 # Mainloop variables
 running = True
 fps = 60
 clock = pg.time.Clock()
+
+
+# Create the sprite sheet
+# Load the json file
+with open(str(output_json), "r") as f:
+    # Try to load the json
+    try:
+        sprite_sheet_data = json.load(f)
+    except json.decoder.JSONDecodeError:
+        # If the json is invalid, create a new one
+        sprite_sheet_data = {}
+
+sprite_sheet = SpriteSheet(image.copy(), sprite_sheet_data)
 
 
 # Define extra variables
@@ -59,9 +71,13 @@ cached_selection: pg.Rect | None = None
 start_pressing = pg.Vector2()
 cached_image = image.copy()
 image_offset = pg.Vector2(0, 0)
-zoom = 1
+# Make zoom to scale image to window smaller side
+zoom = min(window.get_width(), window.get_height()) / image.get_width()
 zoom_down_speed = 0.9
 zoom_up_speed = 1/zoom_down_speed
+reload_cached_image = True
+reload_cached_selection = True
+reload_all = True
 
 
 # Define some constants
@@ -89,9 +105,6 @@ def get_mouse_on_image() -> pg.Vector2:
 # Mainloop
 while running:
     # Set some variables before the loop
-    reload_cached_image = False
-    reload_cached_selection = False
-    reload_all = False
     mouse_pressed = pg.mouse.get_pressed()
     mouse_pos = get_mouse_on_image()
     keys_pressed = pg.key.get_pressed()
@@ -121,7 +134,7 @@ while running:
                     reload_all = True
 
                     pg.display.init()
-                    window = pg.display.set_mode(image.get_size())
+                    window = pg.display.set_mode((0, 0))
         elif event.type == pg.MOUSEBUTTONDOWN:
             if event.button == 1:
                 # Left click
@@ -151,6 +164,7 @@ while running:
             real_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
         else:
             real_selection = pg.Rect(start_pressing, mouse_pos - start_pressing)
+            print(real_selection)
         reload_cached_selection = True
 
     # Selection manipulation
@@ -278,6 +292,11 @@ while running:
 
     # Update the clock
     clock.tick(fps)
+
+    # Set some variables after the clock tick
+    reload_cached_image = False
+    reload_cached_selection = False
+    reload_all = False
 
 
 # Close the window
