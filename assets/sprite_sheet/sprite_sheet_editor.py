@@ -78,6 +78,7 @@ zoom_up_speed = 1/zoom_down_speed
 reload_cached_image = True
 reload_cached_selection = True
 reload_all = True
+show_all_selections = False
 
 
 # Define some constants
@@ -102,6 +103,23 @@ def get_mouse_on_image() -> pg.Vector2:
     return point_on_image(pg.mouse.get_pos())
 
 
+def fix_rect_to_image(rect: pg.Rect) -> pg.Rect:
+    # TODO: Fix this.
+    """
+    Rescale rect and reposition it to the image
+    :param rect:
+    :return:
+    """
+    ret = rect.copy()
+    # Offset ret to the image_offset
+    ret.topleft -= image_offset
+    # Scale ret to the zoom fixing it to the center of the image
+    ret.topleft *= zoom
+    ret.size *= zoom
+    ret.center = center
+    return ret
+
+
 # Mainloop
 while running:
     # Set some variables before the loop
@@ -124,6 +142,9 @@ while running:
                 zoom = 1
                 image_offset = pg.Vector2(0, 0)
                 reload_all = True
+            # Toggle visibility of other selections when "z" key is pressed
+            elif event.key == pg.K_z:
+                show_all_selections = not show_all_selections
             elif event.key == pg.K_SPACE:
                 # Add selection to the sprite sheet
                 if real_selection is not None:
@@ -286,6 +307,15 @@ while running:
         selection_blit_rect = cached_selection.copy()
         selection_blit_rect.center = pg.Vector2(selection_blit_rect.center) + center + image_offset
         pg.draw.rect(window, (255, 0, 0), selection_blit_rect, 1)
+
+    # Draw other selections
+    if show_all_selections:
+        for selection in sprite_sheet.config:
+            sel = sprite_sheet.config[selection]
+            if len(sel) == 4:
+                selection_blit_rect = fix_rect_to_image(pg.Rect(sel[0], sel[1], sel[2], sel[3]))
+                print(selection_blit_rect)
+                pg.draw.rect(window, (0, 255, 0), selection_blit_rect, 1)
 
     # Update the display
     pg.display.update()
