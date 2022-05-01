@@ -71,6 +71,8 @@ cached_selection: pg.Rect | None = None
 start_pressing = pg.Vector2()
 cached_image = image.copy()
 image_offset = pg.Vector2(0, 0)
+cached_image_rect = cached_image.get_rect()
+cached_image_rect.center = center
 # Make zoom to scale image to window smaller side
 zoom = min(window.get_width(), window.get_height()) / image.get_width()
 zoom_down_speed = 0.9
@@ -92,8 +94,18 @@ def point_on_image(point: pg.Vector2 | tuple) -> pg.Vector2:
     Get the point position on the image, taking into account the zoom and the image offset
     """
     if isinstance(point, tuple):
-        point = pg.Vector2(point) - center
+        point = pg.Vector2(point)
     return (point - image_offset) / zoom
+
+
+def image_point_to_screen(point: pg.Vector2 | tuple) -> pg.Vector2:
+    #TODO: Fix this
+    """
+    Get the point position on the screen from the image, taking into account the zoom and the image offset
+    """
+    if isinstance(point, tuple):
+        point = pg.Vector2(point)
+    return (point * zoom) + image_offset
 
 
 def get_mouse_on_image() -> pg.Vector2:
@@ -104,19 +116,14 @@ def get_mouse_on_image() -> pg.Vector2:
 
 
 def fix_rect_to_image(rect: pg.Rect) -> pg.Rect:
-    # TODO: Fix this.
     """
     Rescale rect and reposition it to the image
     :param rect:
     :return:
     """
     ret = rect.copy()
-    # Offset ret to the image_offset
-    ret.topleft -= image_offset
-    # Scale ret to the zoom fixing it to the center of the image
-    ret.topleft *= zoom
-    ret.size *= zoom
-    ret.center = center
+    ret.topleft = image_point_to_screen(ret.topleft)
+    ret.size = image_point_to_screen(pg.Vector2(ret.bottomright)) - ret.topleft
     return ret
 
 
@@ -185,7 +192,6 @@ while running:
             real_selection = pg.Rect(start_pressing, pg.Vector2(0, 0))
         else:
             real_selection = pg.Rect(start_pressing, mouse_pos - start_pressing)
-            print(real_selection)
         reload_cached_selection = True
 
     # Selection manipulation
@@ -277,6 +283,8 @@ while running:
     if reload_cached_image:
         # Reload image
         cached_image = pg.transform.scale(image, (int(image.get_width() * zoom), int(image.get_height() * zoom)))
+        cached_image_rect = cached_image.get_rect()
+        cached_image_rect.center = center
 
     # Reload cached selection if needed
     if reload_cached_selection:
@@ -314,8 +322,7 @@ while running:
             sel = sprite_sheet.config[selection]
             if len(sel) == 4:
                 selection_blit_rect = fix_rect_to_image(pg.Rect(sel[0], sel[1], sel[2], sel[3]))
-                print(selection_blit_rect)
-                pg.draw.rect(window, (0, 255, 0), selection_blit_rect, 1)
+                pg.draw.rect(window, (0, 255, 0), selection_blit_rect)
 
     # Update the display
     pg.display.update()
